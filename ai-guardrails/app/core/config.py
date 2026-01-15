@@ -6,19 +6,15 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Guardrails API"
     API_V1_STR: str = "/api/v1"
     REDIS_URL: str = "redis://localhost:6379/0"
+    DATABASE_URL: str
     API_KEY: str = "sk_local_dev_12345"  # Default for local dev
+    
+    # Monitoring
+    SENTRY_DSN: str | None = None
     
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000"]'
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
-
-    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
+    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:8000"]
 
     class Config:
         case_sensitive = True

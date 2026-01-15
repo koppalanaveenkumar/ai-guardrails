@@ -6,17 +6,20 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.limiter import limiter
-from app.services.audit_service import init_db
+import sentry_sdk
+
+# Initialize Sentry if DSN is set
+if settings.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        traces_sample_rate=1.0, # Adjust in production
+        profiles_sample_rate=1.0,
+    )
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
-
-# Initialize Audit DB on startup
-@app.on_event("startup")
-def startup_event():
-    init_db()
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -37,3 +40,10 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 @app.get("/")
 def root():
     return {"message": "AI Guardrails API is running", "version": "0.1.0"}
+
+@app.get("/health")
+def health_check():
+    """
+    Health check endpoint for UptimeRobot or Load Balancers.
+    """
+    return {"status": "ok", "environment": "production" if settings.SENTRY_DSN else "development"}

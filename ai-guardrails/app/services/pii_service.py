@@ -1,4 +1,5 @@
 from presidio_analyzer import AnalyzerEngine, PatternRecognizer, Pattern, RecognizerRegistry
+from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 
@@ -12,12 +13,22 @@ class PIIAnalyzer:
         # The default Presidio phone recognizer needs context or strict formatting.
         # We add a lenient regex for 'XXX-XXXX' or 'XXX-XXX-XXXX'
         # Matches: 555-0199 (7 digit) OR 555-555-0199 (10 digit)
-        phone_pattern = Pattern(name="loose_phone_pattern", regex=r"\b(\d{3}[-.]?)?\d{3}[-.]?\d{4}\b", score=0.6)
+        # Matches: 555-0199, 9874563210 (10 digit raw), etc.
+        phone_pattern = Pattern(name="loose_phone_pattern", regex=r"\b(?:\+?\d{1,3}[-. ]?)?\(?\d{3}\)?[-. ]?\d{3}[-. ]?\d{4}\b", score=0.6)
         loose_phone_recognizer = PatternRecognizer(supported_entity="PHONE_NUMBER", patterns=[phone_pattern])
         registry.add_recognizer(loose_phone_recognizer)
 
-        # 3. Initialize Engines
-        self.analyzer = AnalyzerEngine(registry=registry)
+        # 3. Configure NLP Engine to use the SMALL model (Speed > Accuracy)
+        # This forces Presidio to use en_core_web_sm instead of lg
+        configuration = {
+            "nlp_engine_name": "spacy",
+            "models": [{"lang_code": "en", "model_name": "en_core_web_sm"}],
+        }
+        provider = NlpEngineProvider(nlp_configuration=configuration)
+        nlp_engine = provider.create_engine()
+
+        # 4. Initialize Engines
+        self.analyzer = AnalyzerEngine(registry=registry, nlp_engine=nlp_engine)
         self.anonymizer = AnonymizerEngine()
 
     def analyze_and_anonymize(self, text: str):
@@ -28,8 +39,10 @@ class PIIAnalyzer:
         if not text:
             return text, []
 
-        # Analyze
-        results = self.analyzer.analyze(text=text, language='en')
+        # Analyze (Allowlist approach: Only check for things we care about)
+        # This prevents "12345" being detected as an Organization or Bank Number
+        target_entities = ["PHONE_NUMBER", "EMAIL_ADDRESS", "CREDIT_CARD", "IBAN_CODE", "PERSON", "US_SSN"]
+        results = self.analyzer.analyze(text=text, language='en', entities=target_entities)
         
         # Anonymize
         anonymized_result = self.anonymizer.anonymize(

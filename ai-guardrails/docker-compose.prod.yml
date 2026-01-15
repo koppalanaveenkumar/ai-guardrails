@@ -1,0 +1,34 @@
+services:
+  # 1. The Backend API
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      # DATABASE_URL and API_KEY loaded from .env file automatically
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  # 2. Redis (Rate Limiting)
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
+  # 3. The Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - api

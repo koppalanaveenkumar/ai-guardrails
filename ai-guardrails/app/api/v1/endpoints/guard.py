@@ -47,11 +47,11 @@ async def analyze_prompt(
         latency = (time.time() - start_time) * 1000
         background_tasks.add_task(
             log_request,
-            api_key=api_key,
+            model_name="guard-v1",
             is_safe=safe,
             reason=stop_reason,
             latency_ms=latency,
-            config=body.config.dict()
+            pii_detected=pii_entities
         )
 
     # 1. PII Redaction

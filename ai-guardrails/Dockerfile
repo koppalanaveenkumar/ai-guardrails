@@ -9,10 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Download Spacy model for Presidio (en_core_web_lg is recommended for better accuracy)
-RUN python -m spacy download en_core_web_lg
+# Install dependencies and download Spacy model (en_core_web_sm for speed)
+RUN pip install --no-cache-dir -r requirements.txt && \
+    python -m spacy download en_core_web_sm
 
 COPY . .
 

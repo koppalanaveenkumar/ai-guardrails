@@ -2,6 +2,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 import redis
 from app.core.config import settings
+from app.core.logging_config import logger
 
 def get_limiter():
     try:
@@ -10,7 +11,7 @@ def get_limiter():
         r.ping()
         return Limiter(key_func=get_remote_address, storage_uri=settings.REDIS_URL)
     except Exception:
-        print("⚠️ WARNING: Redis not found. Falling back to Memory Storage for Rate Limiting.")
+        logger.warning("⚠️ WARNING: Redis not found. Falling back to Memory Storage for Rate Limiting.")
         return Limiter(key_func=get_remote_address)
 
 limiter = get_limiter()
