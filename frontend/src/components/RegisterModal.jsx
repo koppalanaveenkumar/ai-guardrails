@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Key, Mail, Lock, CheckCircle, Copy, X } from 'lucide-react';
 
-export default function RegisterModal({ isOpen, onClose }) {
+export default function RegisterModal({ isOpen, onClose, onSuccess }) {
     const [isLogin, setIsLogin] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -33,6 +33,7 @@ export default function RegisterModal({ isOpen, onClose }) {
 
             if (isLogin) {
                 onClose();
+                if (onSuccess) onSuccess(); // Notify parent of successful login
             }
         } catch (err) {
             setError(err.message);

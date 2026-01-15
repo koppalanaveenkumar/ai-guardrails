@@ -20,8 +20,8 @@ function App() {
     if (key) {
       setView('dashboard');
     } else {
-      setInitialMainAuth(true); // Tell Dashboard to open modal
-      setView('dashboard');
+      // Stay on landing page but show auth modal
+      setInitialMainAuth(true);
     }
   };
 
@@ -31,12 +31,17 @@ function App() {
         <LandingPage
           onGetStarted={handleGetStarted}
           onViewDocs={() => setView('docs')}
+          showAuthModal={initialMainAuth}
+          onAuthSuccess={() => {
+            setInitialMainAuth(false);
+            setView('dashboard');
+          }}
+          onAuthClose={() => setInitialMainAuth(false)}
         />
       )}
 
       {view === 'dashboard' && (
         <Dashboard
-          initialAuthOpen={initialMainAuth}
           onLogout={() => {
             localStorage.removeItem('ai_guardrails_key');
             setView('landing');

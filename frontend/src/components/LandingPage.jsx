@@ -1,10 +1,16 @@
 import { Shield, Zap, Lock, Activity, ChevronRight, Code, X } from 'lucide-react';
 import { useState } from 'react';
+import RegisterModal from './RegisterModal';
 
-export default function LandingPage({ onGetStarted, onViewDocs }) {
+export default function LandingPage({ onGetStarted, onViewDocs, showAuthModal, onAuthSuccess, onAuthClose }) {
     const [showImage, setShowImage] = useState(false);
     return (
         <div className="min-h-screen bg-gray-950 text-white font-sans selection:bg-emerald-500/30">
+            <RegisterModal
+                isOpen={showAuthModal}
+                onClose={onAuthClose}
+                onSuccess={onAuthSuccess}
+            />
             {/* Navbar */}
             <nav className="border-b border-white/5 backdrop-blur-md fixed top-0 w-full z-50">
                 <div className="container mx-auto px-4 py-3 md:px-6 md:py-4 flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
