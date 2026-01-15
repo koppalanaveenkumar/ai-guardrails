@@ -221,7 +221,7 @@ Join us in making AI safe, compliant, and trustworthy for every organization.
 ---
 
 **Contact:**
-- **Email:** naveenkumar.koppala@example.com
+- **Email:** naveenkumarkoppala@gmail.com
 - **LinkedIn:** [linkedin.com/in/naveenkumarkoppala](https://www.linkedin.com/in/naveenkumarkoppala)
 - **GitHub:** [github.com/yourusername/ai-guardrails](https://github.com)
 - **Live Demo:** [https://ai-guardrails.vercel.app](https://ai-guardrails.vercel.app)

@@ -12,7 +12,7 @@ from app.core.limiter import limiter
 # Initialize database tables
 from app.core.database import engine, Base
 from app.models.user import User, ApiKey
-from app.models.audit import AuditLog
+from app.models.audit_log import AuditLog
 
 # Initialize Sentry if DSN is set
 if settings.SENTRY_DSN:
