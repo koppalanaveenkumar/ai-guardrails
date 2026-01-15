@@ -1,12 +1,18 @@
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.limiter import limiter
-import sentry_sdk
+
+# Initialize database tables
+from app.core.database import engine, Base
+from app.models.user import User, ApiKey
+from app.models.audit import AuditLog
 
 # Initialize Sentry if DSN is set
 if settings.SENTRY_DSN:
@@ -15,6 +21,9 @@ if settings.SENTRY_DSN:
         traces_sample_rate=1.0, # Adjust in production
         profiles_sample_rate=1.0,
     )
+
+# Create tables if they don't exist (safe for production)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

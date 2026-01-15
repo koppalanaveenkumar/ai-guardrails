@@ -63,7 +63,6 @@ pip install -r requirements.txt
 # See .env.example
 
 # Run Server
-python -m spacy download en_core_web_sm
 uvicorn app.main:app --reload
 ```
 Backend running at: `http://localhost:8000`
