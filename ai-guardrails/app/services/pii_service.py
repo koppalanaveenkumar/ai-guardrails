@@ -18,17 +18,8 @@ class PIIAnalyzer:
         loose_phone_recognizer = PatternRecognizer(supported_entity="PHONE_NUMBER", patterns=[phone_pattern])
         registry.add_recognizer(loose_phone_recognizer)
 
-        # 3. Configure NLP Engine to use the SMALL model (Speed > Accuracy)
-        # This forces Presidio to use en_core_web_sm instead of lg
-        configuration = {
-            "nlp_engine_name": "spacy",
-            "models": [{"lang_code": "en", "model_name": "en_core_web_sm"}],
-        }
-        provider = NlpEngineProvider(nlp_configuration=configuration)
-        nlp_engine = provider.create_engine()
-
-        # 4. Initialize Engines
-        self.analyzer = AnalyzerEngine(registry=registry, nlp_engine=nlp_engine)
+        # 3. Initialize Analyzer with default configuration (uses internal logic or default loaded models)
+        self.analyzer = AnalyzerEngine(registry=registry)
         self.anonymizer = AnonymizerEngine()
 
     def analyze_and_anonymize(self, text: str):
