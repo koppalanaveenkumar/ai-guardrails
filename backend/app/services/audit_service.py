@@ -57,6 +57,18 @@ def get_recent_logs(db: Session, limit: int = 50, offset: int = 0, api_key_id: i
         logger.error(f"⚠️ Failed to read logs: {e}")
         return []
 
+def prune_logs(db: Session, days: int = 30):
+    """Delete audit logs older than specified days."""
+    try:
+        cutoff_date = datetime.datetime.now() - datetime.timedelta(days=days)
+        count = db.query(AuditLog).filter(AuditLog.timestamp < cutoff_date.isoformat()).delete()
+        db.commit()
+        return count
+    except Exception as e:
+        logger.error(f"⚠️ Failed to prune logs: {e}")
+        db.rollback()
+        return 0
+
 def get_audit_stats(db: Session = None, api_key_id: int = None):
     """
     Calculate usage statistics:

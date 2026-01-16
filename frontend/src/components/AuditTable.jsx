@@ -7,6 +7,8 @@ export default function AuditTable() {
     const [page, setPage] = useState(0);
     const LIMIT = 10;
     const [hasMore, setHasMore] = useState(true);
+    const [totalPages, setTotalPages] = useState(0);
+    const [clearing, setClearing] = useState(false);
 
     const fetchLogs = async (targetPage) => {
         try {
@@ -22,8 +24,9 @@ export default function AuditTable() {
             });
             if (res.ok) {
                 const data = await res.json();
-                setLogs(data);
-                setHasMore(data.length === LIMIT);
+                setLogs(Array.isArray(data) ? data : (data.logs || []));
+                setHasMore((Array.isArray(data) ? data : (data.logs || [])).length === LIMIT);
+                setTotalPages(0); // Disable for now
                 setPage(targetPage);
             }
         } catch (err) {
@@ -57,15 +60,41 @@ export default function AuditTable() {
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-white">Live Audit Stream</h2>
-                        <p className="text-sm text-gray-500">Page {page + 1}</p>
+                        <p className="text-sm text-gray-500">
+                            {totalPages > 0 ? `Page ${page + 1} of ${totalPages}` : `Page ${page + 1}`}
+                        </p>
                     </div>
                 </div>
-                <button
-                    onClick={() => fetchLogs(0)}
-                    className="text-xs font-mono text-gray-400 hover:text-white bg-black/40 hover:bg-gray-800 px-3 py-1.5 rounded border border-gray-800 transition-colors"
-                >
-                    Refresh
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={async () => {
+                            setClearing(true);
+                            try {
+                                const apiUrl = import.meta.env.VITE_API_URL;
+                                const apiKey = localStorage.getItem('ai_guardrails_key');
+                                await fetch(`${apiUrl}/audit/prune?days=0`, {
+                                    method: 'DELETE',
+                                    headers: { 'x-api-key': apiKey }
+                                });
+                                await fetchLogs(0);
+                                setTimeout(() => setClearing(false), 1000);
+                            } catch (err) {
+                                console.error('Failed to clear logs:', err);
+                                setClearing(false);
+                            }
+                        }}
+                        disabled={clearing}
+                        className="text-xs font-mono text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded border border-red-500/30 transition-colors disabled:opacity-50"
+                    >
+                        {clearing ? '✓ Cleared!' : 'Clear Logs'}
+                    </button>
+                    <button
+                        onClick={() => fetchLogs(0)}
+                        className="text-xs font-mono text-gray-400 hover:text-white bg-black/40 hover:bg-gray-800 px-3 py-1.5 rounded border border-gray-800 transition-colors"
+                    >
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             <div className="bg-gray-900/60 backdrop-blur-md rounded-2xl border border-gray-800 overflow-hidden shadow-xl">
@@ -104,9 +133,29 @@ export default function AuditTable() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             {log.reason ? (
-                                                <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-300 text-xs font-mono">
-                                                    {log.reason}
-                                                </span>
+                                                <>
+                                                    <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-300 text-xs font-mono">
+                                                        {log.reason.replace(/\s*\(Conf:.*?\)/, '')}
+                                                    </span>
+                                                    {(() => {
+                                                        const match = log.reason.match(/\(Conf:\s*([\d.]+)\)/);
+                                                        if (match) {
+                                                            const score = parseFloat(match[1]);
+                                                            const scorePercent = Math.round(score * 100);
+                                                            return (
+                                                                <span className={clsx(
+                                                                    "px-2 py-0.5 rounded text-[10px] font-bold",
+                                                                    score > 0.7 ? "bg-red-500/20 text-red-400" :
+                                                                        score > 0.3 ? "bg-yellow-500/20 text-yellow-400" :
+                                                                            "bg-emerald-500/20 text-emerald-400"
+                                                                )}>
+                                                                    {scorePercent}%
+                                                                </span>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })()}
+                                                </>
                                             ) : (
                                                 <span className="text-gray-700 italic flex items-center gap-1 text-xs">
                                                     <CheckCircle className="w-3 h-3" /> Safe Request
