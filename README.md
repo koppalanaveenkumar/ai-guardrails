@@ -11,9 +11,10 @@ The developer-friendly alternative to enterprise LLM security solutions.
 ---
 
 ## 🚀 Features
-
-- **🛡️ Prompt Injection Defense** - Semantic analysis detects jailbreak attempts that keyword filters miss
-- **🔒 Real-Time PII Redaction** - Automatically removes emails, phone numbers, SSNs, credit cards
+ 
+ - **🛡️ Prompt Injection Defense** - Semantic analysis detects jailbreak attempts that keyword filters miss.
+ - **☣️ Toxicity Detection** - Detects toxic, abusive, or harmful content with high confidence scores.
+ - **🔒 Real-Time PII Redaction** - Powered by **GLiNER** (Deep Learning) for state-of-the-art accuracy.
 - **📊 Compliance-Ready Audit Logs** - Every request tracked for GDPR, HIPAA, SOC 2
 - **⚡ Sub-50ms Latency** - Optimized pipeline adds negligible overhead
 - **🔧 Topic Blocking** - Prevent discussions of competitors, politics, or custom blocklists
@@ -94,10 +95,28 @@ print(response.json())
 # {
 #   "safe": True,
 #   "sanitized_prompt": "My email is <EMAIL> and SSN is <SSN>",
-#   "pii_detected": ["EMAIL", "SSN"],
-#   "reason": null
+#   "pii_detected": ["email", "ssn"],
+#   "reason": null,
+#   "score": 0.0
 # }
 ```
+
+### ☣️ Toxicity Detection
+
+Enable `detect_toxicity: true` in config.
+
+```json
+{
+  "safe": false,
+  "reason": "TOXIC_CONTENT: insult (Conf: 0.99)",
+  "score": 0.99
+}
+```
+
+### 🔒 Traefik Middleware
+
+Easily integrate with Kubernetes/Traefik as a ForwardAuth middleware.
+See [**examples/traefik**](examples/traefik) for a full Docker Compose example.
 
 ### Register & Get API Key
 
@@ -126,7 +145,7 @@ User Input → AI Guardrails API → Sanitized Prompt → Your LLM → Safe Resp
 - PostgreSQL (audit logs)
 - Redis (rate limiting)
 - Sentence Transformers (semantic injection detection)
-- Microsoft Presidio (PII redaction)
+- GLiNER (Generalist LLM for high-accuracy PII redaction)
 
 **Frontend:**
 - React + Vite
@@ -221,7 +240,7 @@ Contributions are welcome! Please follow these steps:
 ## 🛣️ Roadmap
 
 - ✅ **v1.0:** Prompt injection detection, PII redaction, audit logging
-- 🔄 **Next:** Custom ML models, webhooks, advanced analytics
+- ✅ **v2.0 (Live):** High-Accuracy GLiNER Engine, Traefik Middleware Support
 - 🔮 **Future:** SSO, integrations, enterprise features
 
 ---
