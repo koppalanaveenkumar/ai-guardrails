@@ -29,8 +29,8 @@ print(f"Memory after loading model: {end_mem:.2f} MB")
 print(f"** Total Model Cost: {end_mem - start_mem:.2f} MB **")
 
 # Run a warm-up prediction
-text = "Naveen is an engineer at Google."
-labels = ["person", "organization"]
+text = "I am meeting with Apple to discuss the merger."
+labels = ["person", "organization", "location", "email", "phone number"]
 print(f"\nRunning prediction on: '{text}'")
 start_time = time.time()
 entities = model.predict_entities(text, labels)
