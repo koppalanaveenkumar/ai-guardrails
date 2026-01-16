@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  # 1. The Reverse Proxy (Traefik)
+  traefik:
+    image: "traefik:v2.10"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"     # The Public Entrypoint
+      - "8080:8080" # Traefik Dashboard
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  # 2. AI Guardrails (The Protection Middleware)
+  ai-guardrails:
+    build: ../../backend  # Assumes running from examples/traefik
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    environment:
+      - DATABASE_URL=postgresql
+      # In a real setup, you'd configure REDIS_URL too
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.guardrails.loadbalancer.server.port=8000"
+      # Define the Middleware
+      - "traefik.http.middlewares.guardrails-auth.forwardauth.address=http://ai-guardrails:8000/api/v1/guard/check"
+      - "traefik.http.middlewares.guardrails-auth.forwardauth.trustForwardHeader=true"
+
+  # 3. Protected Service (e.g., your LLM, Ollama, or Chat App)
+  my-protected-app:
+    image: "traefik/whoami"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.my-app.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.my-app.entrypoints=web"
+      # 🔒 Apply the AI Guardrails Middleware here!
+      - "traefik.http.routers.my-app.middlewares=guardrails-auth"
