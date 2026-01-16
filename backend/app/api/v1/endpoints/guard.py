@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import time
-from app.services.pii_service import pii_analyzer
+from app.services.gliner_service import gliner_service
 from app.services.security_service import security_scanner
 from app.core.limiter import limiter
 from app.core.security import get_api_key
@@ -31,7 +31,7 @@ async def analyze_prompt(
     request: Request, 
     body: GuardRequest, 
     background_tasks: BackgroundTasks,
-    api_key: str = Depends(get_api_key)
+    api_key = Depends(get_api_key)
 ):
     start_time = time.time()
     
@@ -50,7 +50,7 @@ async def analyze_prompt(
         
         background_tasks.add_task(
             log_request,
-            model_name="guard-v1",
+            model_name="guard-v2-gliner",
             is_safe=safe,
             reason=stop_reason,
             latency_ms=latency,
@@ -58,10 +58,9 @@ async def analyze_prompt(
             api_key_id=key_id
         )
 
-    # 1. PII Redaction
+    # 1. PII Redaction (v2.0 GLiNER High-Accuracy)
     if body.config.redact_pii:
-        # We will implement pii_analyzer.analyze_and_anonymize
-        sanitized_prompt, pii_entities = pii_analyzer.analyze_and_anonymize(body.prompt)
+        sanitized_prompt, pii_entities = gliner_service.anonymize(body.prompt)
     
     # 2. Injection Detection
     if body.config.detect_injection:

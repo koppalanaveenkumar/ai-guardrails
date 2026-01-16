@@ -30,6 +30,7 @@ phonenumbers==9.0.21
 # ML for Injection Detection
 sentence-transformers==5.2.0
 scikit-learn==1.8.0
+gliner==0.2.24
 
 # Monitoring
 sentry-sdk[fastapi]==2.12.0
@@ -50,3 +51,5 @@ anyio==4.12.1
 h11==0.16.0
 click==8.3.1
 typing_extensions==4.15.0
+
+psutil==7.0.0
