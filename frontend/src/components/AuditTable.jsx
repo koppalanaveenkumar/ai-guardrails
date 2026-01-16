@@ -4,14 +4,18 @@ import clsx from 'clsx';
 
 export default function AuditTable() {
     const [logs, setLogs] = useState([]);
+    const [page, setPage] = useState(0);
+    const LIMIT = 10;
+    const [hasMore, setHasMore] = useState(true);
 
-    const fetchLogs = async () => {
+    const fetchLogs = async (targetPage) => {
         try {
             const apiUrl = import.meta.env.VITE_API_URL;
             const apiKey = localStorage.getItem('ai_guardrails_key');
             if (!apiKey) return;
 
-            const res = await fetch(`${apiUrl}/audit/logs`, {
+            const offset = targetPage * LIMIT;
+            const res = await fetch(`${apiUrl}/audit/logs?limit=${LIMIT}&offset=${offset}`, {
                 headers: {
                     'x-api-key': apiKey
                 }
@@ -19,6 +23,8 @@ export default function AuditTable() {
             if (res.ok) {
                 const data = await res.json();
                 setLogs(data);
+                setHasMore(data.length === LIMIT);
+                setPage(targetPage);
             }
         } catch (err) {
             console.error("Failed to fetch logs", err);
@@ -26,24 +32,21 @@ export default function AuditTable() {
     };
 
     useEffect(() => {
-        fetchLogs(); // Initial fetch
+        fetchLogs(0); // Initial fetch
 
-        // Listen for new logs triggered by the Playground
         const handleUpdate = () => {
-            fetchLogs();
-            fetchStats(); // Also update stats if we had access to that function, but StatsGrid handles itself.
+            // When new logs arrive, go back to page 0
+            fetchLogs(0);
         };
 
         window.addEventListener('audit-log-update', handleUpdate);
-
-        // Optional: Very slow poll just in case (every 60s)
-        const interval = setInterval(fetchLogs, 60000);
+        const interval = setInterval(() => { if (page === 0) fetchLogs(0); }, 10000); // Auto-refresh only on first page
 
         return () => {
             window.removeEventListener('audit-log-update', handleUpdate);
             clearInterval(interval);
         };
-    }, []);
+    }, [page]);
 
     return (
         <div className="p-8 max-w-6xl mx-auto mt-4">
@@ -54,14 +57,14 @@ export default function AuditTable() {
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-white">Live Audit Stream</h2>
-                        <p className="text-sm text-gray-500">Incoming request logs</p>
+                        <p className="text-sm text-gray-500">Page {page + 1}</p>
                     </div>
                 </div>
                 <button
-                    onClick={fetchLogs}
+                    onClick={() => fetchLogs(0)}
                     className="text-xs font-mono text-gray-400 hover:text-white bg-black/40 hover:bg-gray-800 px-3 py-1.5 rounded border border-gray-800 transition-colors"
                 >
-                    Refresh (Auto: 10s)
+                    Refresh
                 </button>
             </div>
 
@@ -133,6 +136,29 @@ export default function AuditTable() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="border-t border-gray-800 bg-gray-900/40 p-3 flex items-center justify-between">
+                    <button
+                        onClick={() => fetchLogs(page - 1)}
+                        disabled={page === 0}
+                        className="text-xs text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-colors py-1.5 px-4 rounded hover:bg-gray-800 font-mono flex items-center gap-2"
+                    >
+                        <span>← Previous</span>
+                    </button>
+
+                    <span className="text-xs font-mono text-gray-500">
+                        Page {page + 1}
+                    </span>
+
+                    <button
+                        onClick={() => fetchLogs(page + 1)}
+                        disabled={!hasMore}
+                        className="text-xs text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-colors py-1.5 px-4 rounded hover:bg-gray-800 font-mono flex items-center gap-2"
+                    >
+                        <span>Next →</span>
+                    </button>
                 </div>
             </div>
         </div>

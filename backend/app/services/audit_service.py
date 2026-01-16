@@ -32,14 +32,14 @@ def log_request(model_name: str, is_safe: bool, reason: str = None, latency_ms: 
 
 from sqlalchemy import func
 
-def get_recent_logs(db: Session, limit: int = 50, api_key_id: int = None):
+def get_recent_logs(db: Session, limit: int = 50, offset: int = 0, api_key_id: int = None):
     """Fetch recent audit logs from PostgreSQL."""
     try:
         query = db.query(AuditLog)
         if api_key_id:
             query = query.filter(AuditLog.api_key_id == api_key_id)
         
-        logs = query.order_by(AuditLog.id.desc()).limit(limit).all()
+        logs = query.order_by(AuditLog.id.desc()).offset(offset).limit(limit).all()
         # Convert to dictionary format for API
         return [
             {

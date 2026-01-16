@@ -9,6 +9,7 @@ export default function Playground({ onOpenAuth }) {
     const [error, setError] = useState(null);
     const [config, setConfig] = useState({
         detect_injection: true,
+        detect_toxicity: true,
         redact_pii: true,
     });
 
@@ -126,6 +127,22 @@ export default function Playground({ onOpenAuth }) {
                                     <Lock className="w-4 h-4" />
                                     <span className="text-sm font-medium">PII Redaction</span>
                                 </label>
+
+                                <label className={clsx(
+                                    "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                                    config.detect_toxicity
+                                        ? "bg-purple-500/10 border-purple-500/30 text-purple-200"
+                                        : "bg-gray-900 border-gray-800 text-gray-500 hover:bg-gray-800"
+                                )}>
+                                    <input
+                                        type="checkbox"
+                                        checked={config.detect_toxicity}
+                                        onChange={(e) => setConfig({ ...config, detect_toxicity: e.target.checked })}
+                                        className="hidden"
+                                    />
+                                    <Zap className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Toxicity Filter</span>
+                                </label>
                             </div>
 
                             <div className="space-y-2">
@@ -218,6 +235,32 @@ export default function Playground({ onOpenAuth }) {
                                     </div>
                                 </div>
 
+                                {/* Risk Confidence Meter */}
+                                <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 space-y-2">
+                                    <div className="flex justify-between text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                        <span>Risk Confidence</span>
+                                        <span className={clsx(
+                                            result.score > 0.7 ? "text-red-400" : result.score > 0.3 ? "text-yellow-400" : "text-emerald-400"
+                                        )}>
+                                            {(result.score * 100).toFixed(1)}%
+                                        </span>
+                                    </div>
+                                    <div className="h-2 bg-gray-800 rounded-full overflow-hidden relative">
+                                        <div
+                                            className={clsx(
+                                                "h-full transition-all duration-1000 ease-out",
+                                                result.score > 0.7 ? "bg-red-500" : result.score > 0.3 ? "bg-yellow-500" : "bg-emerald-500"
+                                            )}
+                                            style={{ width: `${Math.max(result.score * 100, 5)}%` }}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-[10px] text-gray-600 font-mono">
+                                        <span>SAFE</span>
+                                        <span>SUSPICIOUS</span>
+                                        <span>TOXIC/ATTACK</span>
+                                    </div>
+                                </div>
+
                                 {/* Content */}
                                 <div className="space-y-6">
                                     {!result.safe && (
@@ -272,6 +315,6 @@ export default function Playground({ onOpenAuth }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

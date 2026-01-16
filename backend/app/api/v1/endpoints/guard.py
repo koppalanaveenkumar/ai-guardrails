@@ -74,6 +74,9 @@ async def analyze_prompt(
                 details=f"PII: {pii_entities}" if pii_entities else None
             )
 
+    # Track highest risk score
+    max_risk_score = 0.0
+
     # 1. PII Redaction
     if body.config.redact_pii:
         sanitized_prompt, pii_entities = gliner_service.anonymize(body.prompt)
@@ -81,6 +84,7 @@ async def analyze_prompt(
     # 2. Injection Detection
     if body.config.detect_injection:
         is_safe, reason, score = security_scanner.scan(sanitized_prompt)
+        max_risk_score = max(max_risk_score, score)
         if not is_safe:
             log_result(safe=False, stop_reason=reason, final_score=score)
             return GuardResponse(safe=False, reason=reason, pii_detected=pii_entities, score=score)
@@ -88,6 +92,7 @@ async def analyze_prompt(
     # 3. Toxicity Detection (New)
     if body.config.detect_toxicity:
         is_toxic, tox_score, flags = toxicity_scanner.scan(sanitized_prompt)
+        max_risk_score = max(max_risk_score, tox_score)
         if is_toxic:
             reason = f"TOXIC_CONTENT: {', '.join(flags)}"
             log_result(safe=False, stop_reason=reason, final_score=tox_score)
@@ -108,11 +113,11 @@ async def analyze_prompt(
                     score=1.0
                 )
 
-    log_result(safe=True, stop_reason=None, final_score=0.0)
+    log_result(safe=True, stop_reason=None, final_score=max_risk_score)
     return GuardResponse(
         safe=is_safe,
         sanitized_prompt=sanitized_prompt,
         pii_detected=pii_entities,
         reason=reason,
-        score=0.0
+        score=max_risk_score
     )

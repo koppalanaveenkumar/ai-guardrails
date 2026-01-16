@@ -17,19 +17,19 @@ from app.models.user import User, ApiKey
 from app.models.audit_log import AuditLog
 
 # Initialize Sentry if DSN is set
-if settings.SENTRY_DSN:
-    # Configure logging integration
-    sentry_logging = LoggingIntegration(
-        level=logging.INFO,        # Capture INFO and above as breadcrumbs
-        event_level=logging.ERROR  # Send ERROR and above as events
-    )
+# if settings.SENTRY_DSN:
+#     # Configure logging integration
+#     sentry_logging = LoggingIntegration(
+#         level=logging.INFO,        # Capture INFO and above as breadcrumbs
+#         event_level=logging.ERROR  # Send ERROR and above as events
+#     )
     
-    sentry_sdk.init(
-        dsn=settings.SENTRY_DSN,
-        integrations=[sentry_logging],
-        traces_sample_rate=1.0,
-        profiles_sample_rate=1.0,
-    )
+#     sentry_sdk.init(
+#         dsn=settings.SENTRY_DSN,
+#         integrations=[sentry_logging],
+#         traces_sample_rate=1.0,
+#         profiles_sample_rate=1.0,
+#     )
 
 # Create tables if they don't exist (safe for production)
 Base.metadata.create_all(bind=engine)

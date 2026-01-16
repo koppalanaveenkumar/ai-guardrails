@@ -10,14 +10,15 @@ router = APIRouter()
 @router.get("/logs")
 def get_logs(
     limit: int = 50,
+    offset: int = 0,
     db: Session = Depends(get_db),
     api_key = Security(get_api_key)
 ):
     """
-    Get recent audit logs.
+    Get recent audit logs. By default limits to 50, accepts offset for pagination.
     """
     key_id = api_key.id if hasattr(api_key, 'id') else None
-    return audit_service.get_recent_logs(db, limit, api_key_id=key_id)
+    return audit_service.get_recent_logs(db, limit, offset, api_key_id=key_id)
 
 @router.delete("/prune")
 def prune_old_logs(
