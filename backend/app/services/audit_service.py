@@ -4,7 +4,7 @@ from app.core.database import SessionLocal
 from app.models.audit_log import AuditLog
 from app.core.logging_config import logger
 
-def log_request(model_name: str, is_safe: bool, reason: str = None, latency_ms: float = 0, pii_detected: list = None):
+def log_request(model_name: str, is_safe: bool, reason: str = None, latency_ms: float = 0, pii_detected: list = None, api_key_id: int = None):
     """
     Log request details to PostgreSQL (Neon DB).
     """
@@ -19,7 +19,8 @@ def log_request(model_name: str, is_safe: bool, reason: str = None, latency_ms: 
             is_safe=is_safe,
             reason=reason,
             latency_ms=latency_ms,
-            pii_detected=pii_str
+            pii_detected=pii_str,
+            api_key_id=api_key_id
         )
         db.add(log_entry)
         db.commit()
@@ -31,10 +32,14 @@ def log_request(model_name: str, is_safe: bool, reason: str = None, latency_ms: 
 
 from sqlalchemy import func
 
-def get_recent_logs(db: Session, limit: int = 50):
+def get_recent_logs(db: Session, limit: int = 50, api_key_id: int = None):
     """Fetch recent audit logs from PostgreSQL."""
     try:
-        logs = db.query(AuditLog).order_by(AuditLog.id.desc()).limit(limit).all()
+        query = db.query(AuditLog)
+        if api_key_id:
+            query = query.filter(AuditLog.api_key_id == api_key_id)
+        
+        logs = query.order_by(AuditLog.id.desc()).limit(limit).all()
         # Convert to dictionary format for API
         return [
             {
@@ -52,7 +57,7 @@ def get_recent_logs(db: Session, limit: int = 50):
         logger.error(f"⚠️ Failed to read logs: {e}")
         return []
 
-def get_audit_stats(db: Session = None):
+def get_audit_stats(db: Session = None, api_key_id: int = None):
     """
     Calculate usage statistics:
     - Total Requests
@@ -68,9 +73,18 @@ def get_audit_stats(db: Session = None):
         should_close = False
         
     try:
-        total_requests = db.query(func.count(AuditLog.id)).scalar()
-        blocked_requests = db.query(func.count(AuditLog.id)).filter(AuditLog.is_safe == False).scalar()
-        avg_latency = db.query(func.avg(AuditLog.latency_ms)).scalar() or 0.0
+        base_query = db.query(func.count(AuditLog.id))
+        blocked_query = db.query(func.count(AuditLog.id)).filter(AuditLog.is_safe == False)
+        latency_query = db.query(func.avg(AuditLog.latency_ms))
+
+        if api_key_id:
+            base_query = base_query.filter(AuditLog.api_key_id == api_key_id)
+            blocked_query = blocked_query.filter(AuditLog.api_key_id == api_key_id)
+            latency_query = latency_query.filter(AuditLog.api_key_id == api_key_id)
+
+        total_requests = base_query.scalar()
+        blocked_requests = blocked_query.scalar()
+        avg_latency = latency_query.scalar() or 0.0
 
         return {
             "total_requests": total_requests,

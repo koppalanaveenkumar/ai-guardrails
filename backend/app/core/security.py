@@ -18,7 +18,7 @@ def get_api_key(api_key_token: str = Security(api_key_header)):
     try:
         key_record = db.query(ApiKey).filter(ApiKey.key == api_key_token, ApiKey.is_active == True).first()
         if key_record:
-            return api_key_token
+            return key_record
     except Exception as e:
         logger.error(f"⚠️ Key validation error: {e}")
     finally:

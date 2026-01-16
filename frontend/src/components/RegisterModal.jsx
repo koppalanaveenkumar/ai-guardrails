@@ -146,10 +146,11 @@ export default function RegisterModal({ isOpen, onClose, onSuccess }) {
                                 This key will not be shown again. Save it securely.
                             </p>
                             <button
-                                onClick={onClose}
-                                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 rounded-lg transition-colors"
+                                onClick={onSuccess}
+                                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                             >
-                                Close
+                                Go to Dashboard
+                                <CheckCircle className="w-4 h-4" />
                             </button>
                         </div>
                     )}

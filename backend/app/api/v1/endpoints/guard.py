@@ -45,13 +45,17 @@ async def analyze_prompt(
     # Helper to log before return
     def log_result(safe, stop_reason):
         latency = (time.time() - start_time) * 1000
+        # api_key is now the full ORM object
+        key_id = api_key.id if hasattr(api_key, 'id') else None
+        
         background_tasks.add_task(
             log_request,
             model_name="guard-v1",
             is_safe=safe,
             reason=stop_reason,
             latency_ms=latency,
-            pii_detected=pii_entities
+            pii_detected=pii_entities,
+            api_key_id=key_id
         )
 
     # 1. PII Redaction
