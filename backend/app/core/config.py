@@ -7,10 +7,10 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     REDIS_URL: str = "redis://localhost:6379/0"
     DATABASE_URL: str
-    API_KEY: str = "sk_local_dev_12345"  # Default for local dev
     
     # Monitoring
     SENTRY_DSN: str | None = None
+    WEBHOOK_URL: str | None = None
     
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000"]'
