@@ -31,6 +31,7 @@ phonenumbers==9.0.21
 sentence-transformers==5.2.0
 scikit-learn==1.8.0
 gliner==0.2.24
+transformers==4.57.5
 
 # Monitoring
 sentry-sdk[fastapi]==2.12.0
