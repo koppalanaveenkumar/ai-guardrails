@@ -59,9 +59,18 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 def root():
     return {"message": "AI Guardrails API is running", "version": "0.1.0"}
 
+
 @app.get("/health")
 def health_check():
     """
     Health check endpoint for UptimeRobot or Load Balancers.
     """
     return {"status": "ok", "environment": "production" if settings.SENTRY_DSN else "development"}
+
+# --- Log Noise Filter ---
+class EndpointFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.getMessage().find("/natsws") == -1
+
+# Filter out /natsws logs from uvicorn access logs
+logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
