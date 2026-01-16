@@ -32,7 +32,7 @@ sentence-transformers==5.2.0
 scikit-learn==1.8.0
 gliner==0.2.24
 transformers==4.57.5
-httpx==0.26.05
+httpx==0.26.0
 
 # Monitoring
 sentry-sdk[fastapi]==2.12.0
