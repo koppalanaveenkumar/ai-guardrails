@@ -6,7 +6,7 @@ class GlinerPiiService:
     def __init__(self):
         self.model = None
         self.model_name = "urchade/gliner_small-v2.1"
-        self.labels = ["person", "email", "phone number", "credit card", "password", "api key", "secret"]
+        self.labels = ["person", "organization", "location", "email", "phone number", "credit card", "password", "api key", "secret"]
 
     def load_model(self):
         """Lazy loading of the model to avoid memory spike on import"""
