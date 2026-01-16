@@ -47,7 +47,7 @@ cp .env.example .env
 # Edit .env with your DATABASE_URL, REDIS_URL, etc.
 
 # Run server
-uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
 
 Backend runs at: `http://localhost:8000`
@@ -210,7 +210,7 @@ pytest tests/test_guard.py -v
    - `SENTRY_DSN` - Sentry error tracking
 4. Deploy!
 
-**Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+**Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
 ### Deploy to Vercel (Frontend)
 
