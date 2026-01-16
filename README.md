@@ -14,6 +14,7 @@ The developer-friendly alternative to enterprise LLM security solutions.
  
  - **🛡️ Prompt Injection Defense** - Semantic analysis detects jailbreak attempts that keyword filters miss.
  - **☣️ Toxicity Detection** - Detects toxic, abusive, or harmful content with high confidence scores.
+ - **🔔 Real-Time Alerts** - Sends instant notifications to Slack/Discord when an attack is blocked.
  - **🔒 Real-Time PII Redaction** - Powered by **GLiNER** (Deep Learning) for state-of-the-art accuracy.
 - **📊 Compliance-Ready Audit Logs** - Every request tracked for GDPR, HIPAA, SOC 2
 - **⚡ Sub-50ms Latency** - Optimized pipeline adds negligible overhead
@@ -112,6 +113,15 @@ Enable `detect_toxicity: true` in config.
   "score": 0.99
 }
 ```
+
+### 🔔 Real-Time Alerts
+
+Add `WEBHOOK_URL=https://hooks.slack.com/...` to your `.env`.
+When a threat is blocked, you'll get an instant notification:
+
+> 🚨 **GUARDRAILS ALERT**
+> **Reason:** TOXIC_CONTENT (Conf: 0.99)
+> **Details:** PII: ['email']
 
 ### 🔒 Traefik Middleware
 

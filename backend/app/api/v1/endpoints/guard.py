@@ -5,6 +5,7 @@ import time
 from app.services.gliner_service import gliner_service
 from app.services.security_service import security_scanner
 from app.services.toxicity_service import toxicity_scanner
+from app.services.notification_service import notification_service
 from app.core.limiter import limiter
 from app.core.security import get_api_key
 from app.services.audit_service import log_request
@@ -53,6 +54,7 @@ async def analyze_prompt(
         if stop_reason and final_score > 0:
             stop_reason = f"{stop_reason} (Conf: {final_score:.2f})"
 
+        # 1. Database Audit Log
         background_tasks.add_task(
             log_request,
             model_name="guard-v2-composite",
@@ -62,6 +64,15 @@ async def analyze_prompt(
             pii_detected=pii_entities,
             api_key_id=key_id
         )
+
+        # 2. Webhook Notification (Only on Block)
+        if not safe:
+            background_tasks.add_task(
+                notification_service.send_alert,
+                reason=stop_reason,
+                score=final_score,
+                details=f"PII: {pii_entities}" if pii_entities else None
+            )
 
     # 1. PII Redaction
     if body.config.redact_pii:
